@@ -70,10 +70,10 @@ jobs:
         #   tr "\n" " " | grep -qv ${BLOCKED_PACKAGE}    
 
 
-    #- name: Generate Vulnerability Matches with Grype
-    #  run: |
-    #    grype sbom:$(basename ${GITHUB_REPOSITORY,,}).sbom.json
-    #    # if you want to fail for critical issues, add "-f critical"
+    - name: Generate Vulnerability Matches with Grype
+      run: |
+        grype sbom:$(basename ${GITHUB_REPOSITORY,,}).sbom.json
+        # if you want to fail for critical issues, add "-f critical"
       
     - name: Archive SBOM
       uses: actions/upload-artifact@v3
