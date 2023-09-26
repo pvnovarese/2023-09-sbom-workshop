@@ -1,9 +1,8 @@
 # SBOM Workshop
 
-1. Install syft: https://github.com/anchore/syft
-2. Install grype: https://github.com/anchore/grype
-3. Clone this repo
-4. In the Repo: Settings > Actions > General section, set "Workflow Permissions" to "Read and write permissions"
-5. Run the action!
-6. Edit the action to add vuln matches to your workflow
-7. Edit the action to enforce vulnerability thresholds in your workflow.
+1. Clone this repo
+2. In the Repo: [Settings > Actions > General](settings/actions) section, set "Workflow Permissions" to "Read and write permissions"
+3. [Run the action](actions/workflows/syft-demo.yaml)
+4. [Edit the action](blob/main/.github/workflows/syft-demo.yaml) to add vuln matches to your workflow (uncomment the grype step)
+5. [Edit the action](blob/main/.github/workflows/syft-demo.yaml) to enforce vulnerability thresholds in your workflow (add "-f critical" to the grype step
+
