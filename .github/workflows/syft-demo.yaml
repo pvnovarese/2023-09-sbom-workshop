@@ -4,11 +4,11 @@
 name: Syft Demo
 
 on: 
-  push:
-    branches:
-      - main
-  schedule:
-    - cron: '55 20 */14 * *'
+  #push:
+  #  branches:
+  #    - main
+  #schedule:
+  #  - cron: '55 20 */14 * *'
   workflow_dispatch:
     branches:
       - main
@@ -72,7 +72,7 @@ jobs:
 
     - name: Generate Vulnerability Matches with Grype
       run: |
-        grype sbom:$(basename ${GITHUB_REPOSITORY,,}).sbom.json
+        grype -f critical sbom:$(basename ${GITHUB_REPOSITORY,,}).sbom.json
         # if you want to fail for critical issues, add "-f critical"
       
     - name: Archive SBOM
