@@ -51,7 +51,7 @@ jobs:
       run: |
         echo "IMAGE=${REGISTRY}/${GITHUB_REPOSITORY,,}:${GITHUB_SHA}" >> $GITHUB_ENV    
         
-    - name: Install syft
+    - name: Install syft and grype
       run: |
         sudo curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b ${HOME}/.local/bin 
         sudo curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sh -s -- -b ${HOME}/.local/bin 
@@ -72,7 +72,7 @@ jobs:
 
     - name: Generate Vulnerability Matches with Grype
       run: |
-        grype sbom: $(basename ${GITHUB_REPOSITORY,,}).sbom.json
+        grype sbom:$(basename ${GITHUB_REPOSITORY,,}).sbom.json
         # if you want to fail for critical issues, add "-f critical"
       
     - name: Archive SBOM
