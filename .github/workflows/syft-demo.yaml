@@ -1,0 +1,74 @@
+# This workflow checks out code, builds an image, performs a container image
+# scan, evaluates the image, and promotes it if it passes.
+
+name: Syft Demo
+
+on: 
+  push:
+    branches:
+      - main
+  schedule:
+    - cron: '55 20 */14 * *'
+  workflow_dispatch:
+    branches:
+      - main
+
+env:
+  REGISTRY: ghcr.io
+  
+jobs:
+
+  Build:
+    runs-on: ubuntu-latest
+    steps:
+
+    - name: "Set IMAGE environmental variables"
+      run: |
+        echo "IMAGE=${REGISTRY}/${GITHUB_REPOSITORY,,}:${GITHUB_SHA}" >> $GITHUB_ENV
+    
+    - name: Checkout Code
+      uses: actions/checkout@v3
+        
+    - name: Build Docker Image
+      run: |
+        docker build . --file Dockerfile --tag ${IMAGE}       
+        
+    - name: Login to ghcr.io
+      run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${GITHUB_ACTOR} --password-stdin
+      
+    - name: Push Docker Image
+      run: |
+        docker push ${IMAGE}
+
+  Generate-SBOM:
+    # I'm doing this manually, you could also use the sbom-action:
+    # https://github.com/anchore/sbom-action
+    needs: Build
+    runs-on: ubuntu-latest
+    steps:
+    - name: "Set IMAGE environmental variables"
+      run: |
+        echo "IMAGE=${REGISTRY}/${GITHUB_REPOSITORY,,}:${GITHUB_SHA}" >> $GITHUB_ENV    
+    - name: Install syft
+      run: |
+        sudo curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b ${HOME}/.local/bin 
+        export PATH="${HOME}/.local/bin/:${PATH}"
+    - name: Generate JSON SBOM
+      run: | 
+        syft -o json ${IMAGE} > $(basename ${GITHUB_REPOSITORY,,}).sbom.json
+        #
+        # if you want to block packages, you could do it here by tee'ing the 
+        # output into jq, filter for .packages[].name, and then something like 
+        # grep -qv for whatever you want to block.  E.g.:
+        # syft -o json ghcr.io/${GITHUB_REPOSITORY,,}:${GITHUB_SHA} | \
+        #   tee $(basename ${GITHUB_REPOSITORY,,}).spdx.json | \
+        #   jq .packages[].name | \
+        #   tr "\n" " " | grep -qv ${BLOCKED_PACKAGE}    
+        #
+    - name: Archive SBOM
+      uses: actions/upload-artifact@v2
+      with:
+        name: sbom.json
+        path: ./*.sbom.json
+        retention-days: 14
+
